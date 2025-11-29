@@ -2,50 +2,50 @@
 
 > Your helping hand for command-line interfaces
 
-`te` (Japanese: 手, "hand") is an interactive TUI wrapper that makes complex CLI commands easier to use by prompting you for required arguments and showing you all available options.
+`te` (Japanese: 手, "hand") is an interactive TUI wrapper that makes editing complex CLI commands easier by providing a form-based interface for modifying command arguments.
 
 ## The Problem
 
-Command-line tools are powerful but often hard to remember:
+Long command-line commands are hard to edit and reuse:
 
 ```bash
-# Which arguments were required again?
-aws ec2 run-instances --help  # scroll through walls of text...
+# Want to change just one parameter in this long command?
+kubectl get pods -l app=asset -o custom-columns='POD:.metadata.name,RS:.metadata.ownerReferences[0].name' -w
 
-# Building complex commands from memory
-docker run -d -p 8080:80 --name myapp -e ENV=prod -v /data:/data nginx
+# Have to manually edit the entire command string
+# Easy to make mistakes with quotes, commas, etc.
 ```
 
 ## The Solution
 
-With `te`, just type the command and it will guide you:
+Simply prefix your existing command with `te`:
 
 ```bash
-te aws ec2 run-instances
+te kubectl get pods -l app=asset -o custom-columns='POD:.metadata.name,RS:.metadata.ownerReferences[0].name' -w
 ```
 
 `te` will:
-- 📋 Parse the command's help to identify required and optional arguments
-- ✨ Present an interactive TUI for filling in values
-- 🎯 Remember your frequently used options
-- 💾 Save command history for quick reuse
-- ⚡ Generate the final command with one keystroke
+- 📋 Parse your existing command and extract all arguments and their values
+- ✨ Present an interactive TUI form for editing values
+- 💾 Display the modified command (without executing it)
+- ⚡ Let you copy and run the command when ready
 
 ## Features
 
 ### 🎨 Interactive TUI
 Beautiful terminal interface built with [ratatui](https://github.com/ratatui-org/ratatui) that shows:
-- Required arguments (must fill)
-- Optional arguments (choose what you need)
-- Argument descriptions and types
-- Real-time command preview
-
-### 🧠 Smart Suggestions
-- **Frequency-based sorting**: Most-used options appear first
-- **Default values**: Mark commonly used values as defaults
+- All command arguments with their current values
+- Editable form fields for each argument
+- Real-time command preview as you edit
 
 ### 🔧 Universal Wrapper
-Works with any CLI tool which output help-like output with `--help`.
+Works with any CLI command. `te` simply parses your command string - no special support needed from the tool.
+
+### 🚀 Edit, Don't Execute
+`te` focuses on helping you build the right command:
+- **Shows the final command** instead of executing it
+- **Copy-paste friendly** output
+- **Safe to experiment** - no accidental command execution
 
 ## Installation
 
@@ -63,47 +63,36 @@ cargo build --release
 
 ### Basic Usage
 
+Simply prefix your existing command with `te`:
+
 ```bash
-# Wrap any command
-te <command> [subcommands...]
+# Edit a kubectl command
+te kubectl get pods -l app=myapp -o json
 
-# Examples
-te aws s3 cp
-te kubectl create deployment
-te docker run
-te ffmpeg -i
+# Edit a docker command
+te docker run -d -p 8080:80 --name myapp -e ENV=prod nginx
+
+# Edit an ffmpeg command
+te ffmpeg -i input.mp4 -c:v libx264 -crf 23 output.mp4
+
+# Even works with commands from history
+te $(history | grep kubectl | tail -1 | cut -d' ' -f4-)
 ```
 
-## Configuration
+### In the TUI
 
-Configuration is stored in `~/.te/`:
-
-```
-~/.config/te/
-├── config.toml           # Global settings
-├── history.db            # Command execution history
-```
-
-### Example config.toml
-
-```toml
-[general]
-# Enable frequency-based sorting
-smart_sort = true
-
-# Save command history
-save_history = true
-
-# Maximum history entries
-max_history = 1000
-```
+- `↑/↓`: Navigate between arguments
+- `Enter`: Edit the selected argument's value
+- `Esc`: Cancel editing / Exit
+- `Ctrl+X`: Confirm and display the final command
 
 ## How It Works
 
-1. **Parse**: `te` runs `<command> --help` and parses the output to extract arguments
-2. **Present**: Shows an interactive TUI with all options
-3. **Build**: Constructs the final command based on your input
-4. **Execute**: Runs the command or copies it to clipboard
+1. **Parse Command**: `te` parses your command line to extract the base command, subcommands, and all arguments with their values
+2. **Present TUI**: Shows an interactive form with current values pre-filled
+3. **Edit**: You modify the values you want to change
+4. **Display**: Shows the final command string (does not execute it)
+5. **Copy & Run**: You copy and run the command manually
 
 ## Comparison
 
@@ -123,16 +112,20 @@ In Japanese, 手 (te) means "hand" - representing:
 
 ## Roadmap
 
+### Current Phase (v0.1)
 - [ ] Basic TUI interface
-- [ ] Help parsing
-- [ ] Option sort
-- [ ] Command history
+- [ ] Parse existing command arguments and values
+- [ ] Pre-fill form with existing values
+- [ ] Display-only mode (no execution)
 
-### Future plan
+### Future Features
 
-- [ ] Default mark
-- [ ] Preset feature
-- [ ] Context feature
+- [ ] **Per-command configuration**
+  - Custom labels and descriptions for specific arguments
+  - Custom input types (dropdown, checkbox, file picker)
+  - Validation rules for argument values
+  - Example values
+  - Provider argument options from a specified command in the config.toml
 
 ## Contributing
 
