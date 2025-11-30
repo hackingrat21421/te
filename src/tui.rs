@@ -5,11 +5,10 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{
-    backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
-    style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal, TerminalOptions, Viewport,
+    backend::CrosstermBackend,
+    style::{Color, Modifier, Style},
+    widgets::Paragraph,
 };
 use std::io;
 
@@ -60,82 +59,88 @@ fn run_app<B: ratatui::backend::Backend>(
 ) -> Result<bool> {
     loop {
         terminal.draw(|f| {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Length(3),
-                    Constraint::Min(5),
-                    Constraint::Length(3),
-                    Constraint::Length(3),
-                ])
-                .split(f.area());
+            let area = f.area();
 
-            let title = Paragraph::new(format!(
-                "te - Interactive CLI Helper | Command: {}",
-                app.base_command.join(" ")
-            ))
-            .block(Block::default().borders(Borders::ALL))
-            .style(Style::default().fg(Color::Cyan));
-            f.render_widget(title, chunks[0]);
+            // Help text on first line
+            let help_area = ratatui::layout::Rect {
+                x: area.x,
+                y: area.y,
+                width: area.width,
+                height: 1,
+            };
+            let help = Paragraph::new("↑/↓: navigate, Enter: edit, Ctrl+X: execute, ESC: cancel")
+                .style(Style::default().fg(Color::DarkGray));
+            f.render_widget(help, help_area);
 
-            let items: Vec<ListItem> = app
-                .arguments
-                .iter()
-                .map(|arg| {
-                    let value_display = arg
-                        .value
+            // Render each argument
+            let selected = app.list_state.selected().unwrap_or(0);
+            for (i, arg) in app.arguments.iter().enumerate() {
+                let row_area = ratatui::layout::Rect {
+                    x: area.x,
+                    y: area.y + 1 + i as u16,
+                    width: area.width,
+                    height: 1,
+                };
+
+                // Argument name (left side, max 20 chars)
+                let name_display = if arg.flag.is_empty() {
+                    "(positional)".to_string()
+                } else {
+                    arg.flag.clone()
+                };
+                let name_display = if name_display.len() > 20 {
+                    format!("{}...", &name_display[..17])
+                } else {
+                    name_display
+                };
+
+                // Value display (right side)
+                let value_display = if app.input_mode && i == selected {
+                    app.current_input.as_str()
+                } else {
+                    arg.value
                         .as_ref()
                         .map(|v| v.as_str())
-                        .unwrap_or("<not set>");
+                        .unwrap_or("<not set>")
+                };
 
-                    let content = if arg.flag.is_empty() {
-                        format!("(positional) = {}", value_display)
-                    } else {
-                        format!("{} = {}", arg.flag, value_display)
-                    };
-
-                    ListItem::new(content)
-                })
-                .collect();
-
-            let list =
-                List::new(items)
-                    .block(Block::default().borders(Borders::ALL).title(
-                        "Arguments (↑/↓: navigate, Enter: edit, Ctrl+X: execute, ESC: cancel)",
-                    ))
-                    .highlight_style(
+                // Apply style based on selection
+                let (name_style, value_style) = if i == selected {
+                    (
                         Style::default()
-                            .bg(Color::DarkGray)
+                            .fg(Color::Yellow)
                             .add_modifier(Modifier::BOLD),
+                        Style::default().fg(Color::White).bg(Color::DarkGray),
                     )
-                    .highlight_symbol(">> ");
-
-            f.render_stateful_widget(list, chunks[1], &mut app.list_state);
-
-            if app.input_mode {
-                let input = Paragraph::new(app.current_input.as_str())
-                    .block(
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .title("Input Value (Enter: confirm, ESC: cancel)"),
+                } else {
+                    (
+                        Style::default().fg(Color::Gray),
+                        Style::default().fg(Color::White),
                     )
-                    .style(Style::default().fg(Color::Yellow));
-                f.render_widget(input, chunks[2]);
-            } else {
-                let help_text = Paragraph::new("Press Enter to edit selected argument")
-                    .block(Block::default().borders(Borders::ALL))
-                    .style(Style::default().fg(Color::Gray));
-                f.render_widget(help_text, chunks[2]);
+                };
+
+                // Name area (left 20 chars)
+                let name_area = ratatui::layout::Rect {
+                    x: row_area.x,
+                    y: row_area.y,
+                    width: 20,
+                    height: 1,
+                };
+
+                // Value area (rest of the line)
+                let value_area = ratatui::layout::Rect {
+                    x: row_area.x + 20,
+                    y: row_area.y,
+                    width: row_area.width.saturating_sub(20),
+                    height: 1,
+                };
+
+                let name_widget = Paragraph::new(name_display).style(name_style);
+                let value_widget = Paragraph::new(value_display).style(value_style);
+
+                f.render_widget(name_widget, name_area);
+                f.render_widget(value_widget, value_area);
             }
-
-            let preview = Paragraph::new(app.preview_command.as_str())
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title("Command Preview"),
-                )
-                .style(Style::default().fg(Color::Green));
-            f.render_widget(preview, chunks[3]);
         })?;
 
         if let Event::Key(key) = event::read()? {
@@ -169,4 +174,3 @@ fn run_app<B: ratatui::backend::Backend>(
         }
     }
 }
-
