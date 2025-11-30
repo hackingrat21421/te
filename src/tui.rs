@@ -96,21 +96,6 @@ fn run_app<B: ratatui::backend::Backend>(
                     name_display
                 };
 
-                // TODO: Code is super messy here
-
-                // Value display (right side) depends on Value type
-                let (show_checkbox, checkbox_display, value_display) = match &arg.value {
-                    Value::Checked(checked) => (true, if *checked { "TRUE" } else { "FALSE" }, ""),
-                    Value::String(s) => {
-                        let display = if app.input_mode && i == selected {
-                            app.current_input.as_str()
-                        } else {
-                            s.as_str()
-                        };
-                        (false, "", display)
-                    }
-                };
-
                 // Apply style based on selection
                 let (name_style, value_style) = if i == selected {
                     (
@@ -137,29 +122,39 @@ fn run_app<B: ratatui::backend::Backend>(
                 let name_widget = Paragraph::new(name_display).style(name_style);
                 f.render_widget(name_widget, name_area);
 
-                if show_checkbox {
-                    // Layout: [name 20 chars] [checkbox flex]
-                    let checkbox_area = ratatui::layout::Rect {
-                        x: row_area.x + 20,
-                        y: row_area.y,
-                        width: row_area.width.saturating_sub(20),
-                        height: 1,
-                    };
+                // Value display (right side) depends on Value type
+                match &arg.value {
+                    Value::Checked(checked) => {
+                        // Layout: [name 20 chars] [checkbox flex]
+                        let checkbox_area = ratatui::layout::Rect {
+                            x: row_area.x + 20,
+                            y: row_area.y,
+                            width: row_area.width.saturating_sub(20),
+                            height: 1,
+                        };
 
-                    let checkbox_widget = Paragraph::new(checkbox_display).style(value_style);
-                    f.render_widget(checkbox_widget, checkbox_area);
-                } else {
-                    // Layout: [name 20 chars] [value flex]
-                    let value_area = ratatui::layout::Rect {
-                        x: row_area.x + 20,
-                        y: row_area.y,
-                        width: row_area.width.saturating_sub(20),
-                        height: 1,
-                    };
+                        let display = if *checked { "TRUE" } else { "FALSE" };
+                        let checkbox_widget = Paragraph::new(display).style(value_style);
+                        f.render_widget(checkbox_widget, checkbox_area);
+                    }
+                    Value::String(s) => {
+                        let display = if app.input_mode && i == selected {
+                            app.current_input.as_str()
+                        } else {
+                            s.as_str()
+                        };
+                        // Layout: [name 20 chars] [value flex]
+                        let value_area = ratatui::layout::Rect {
+                            x: row_area.x + 20,
+                            y: row_area.y,
+                            width: row_area.width.saturating_sub(20),
+                            height: 1,
+                        };
 
-                    let value_widget = Paragraph::new(value_display).style(value_style);
-                    f.render_widget(value_widget, value_area);
-                }
+                        let value_widget = Paragraph::new(display).style(value_style);
+                        f.render_widget(value_widget, value_area);
+                    }
+                };
             }
         })?;
 
