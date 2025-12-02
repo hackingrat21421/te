@@ -1,12 +1,12 @@
 use ratatui::widgets::ListState;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Argument {
     pub flag: String,
     pub value: Value,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
     Checked(bool),

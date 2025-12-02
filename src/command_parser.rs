@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::app::{Argument, Value};
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct ParsedCommand {
@@ -91,9 +91,12 @@ mod tests {
         assert_eq!(parsed.base_command, vec!["kubectl", "get", "pods"]);
         assert_eq!(parsed.arguments.len(), 2);
         assert_eq!(parsed.arguments[0].flag, "-l");
-        assert_eq!(parsed.arguments[0].value, Some("app=asset".to_string()));
+        assert_eq!(
+            parsed.arguments[0].value,
+            Value::String("app=asset".to_string())
+        );
         assert_eq!(parsed.arguments[1].flag, "-o");
-        assert_eq!(parsed.arguments[1].value, Some("json".to_string()));
+        assert_eq!(parsed.arguments[1].value, Value::String("json".to_string()));
     }
 
     #[test]
@@ -103,9 +106,15 @@ mod tests {
 
         assert_eq!(parsed.base_command, vec!["docker", "run"]);
         assert_eq!(parsed.arguments[0].flag, "--name");
-        assert_eq!(parsed.arguments[0].value, Some("myapp".to_string()));
+        assert_eq!(
+            parsed.arguments[0].value,
+            Value::String("myapp".to_string())
+        );
         assert_eq!(parsed.arguments[1].flag, "--env");
-        assert_eq!(parsed.arguments[1].value, Some("VAR=value".to_string()));
+        assert_eq!(
+            parsed.arguments[1].value,
+            Value::String("VAR=value".to_string())
+        );
     }
 
     #[test]
@@ -127,7 +136,10 @@ mod tests {
         assert_eq!(parsed.arguments[0].flag, "-o");
         assert_eq!(
             parsed.arguments[0].value,
-            Some("custom-columns=POD:.metadata.name,RS:.metadata.ownerReferences[0].name".to_string())
+            Value::String(
+                "custom-columns=POD:.metadata.name,RS:.metadata.ownerReferences[0].name"
+                    .to_string()
+            )
         );
     }
 }
