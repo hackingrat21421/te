@@ -73,10 +73,15 @@ fn run_app<B: ratatui::backend::Backend>(
         terminal.draw(|f| {
             let area = f.area();
 
-            // Help text on first line
+            // Calculate content height: 1 line for help + 1 line per argument
+            let content_height = 1 + app.arguments.len() as u16;
+            // Start from bottom
+            let start_y = area.height.saturating_sub(content_height);
+
+            // Help text on first line of content (at bottom)
             let help_area = ratatui::layout::Rect {
                 x: area.x,
-                y: area.y,
+                y: start_y,
                 width: area.width,
                 height: 1,
             };
@@ -91,7 +96,7 @@ fn run_app<B: ratatui::backend::Backend>(
             for (i, arg) in app.arguments.iter().enumerate() {
                 let row_area = ratatui::layout::Rect {
                     x: area.x,
-                    y: area.y + 1 + i as u16,
+                    y: start_y + 1 + i as u16,
                     width: area.width,
                     height: 1,
                 };
@@ -108,14 +113,21 @@ fn run_app<B: ratatui::backend::Backend>(
                     name_display
                 };
 
-                // Apply style based on selection
+                // Apply style based on selection and input mode
                 let (name_style, value_style) = if i == selected {
-                    (
-                        Style::default()
-                            .fg(Color::Yellow)
-                            .add_modifier(Modifier::BOLD),
-                        Style::default().fg(Color::White).bg(Color::DarkGray),
-                    )
+                    if app.input_mode {
+                        // Actively editing: use dark background with white text
+                        (
+                            Style::default().fg(Color::White).bg(Color::DarkGray).add_modifier(Modifier::BOLD),
+                            Style::default().fg(Color::White).bg(Color::DarkGray),
+                        )
+                    } else {
+                        // Selected but not editing: darker gray background with bold
+                        (
+                            Style::default().fg(Color::White).bg(Color::Rgb(60, 60, 60)).add_modifier(Modifier::BOLD),
+                            Style::default().fg(Color::White).bg(Color::Rgb(60, 60, 60)).add_modifier(Modifier::BOLD),
+                        )
+                    }
                 } else {
                     (
                         Style::default().fg(Color::Gray),
@@ -165,6 +177,14 @@ fn run_app<B: ratatui::backend::Backend>(
 
                         let value_widget = Paragraph::new(display).style(value_style);
                         f.render_widget(value_widget, value_area);
+
+                        // Show cursor when actively editing
+                        if app.input_mode && i == selected {
+                            f.set_cursor_position((
+                                value_area.x + app.current_input.len() as u16,
+                                value_area.y,
+                            ));
+                        }
                     }
                 };
             }
@@ -192,7 +212,7 @@ fn run_app<B: ratatui::backend::Backend>(
                     KeyCode::Down => app.next(),
                     KeyCode::Up => app.previous(),
                     KeyCode::Char(' ') => app.toggle_checkbox(),
-                    KeyCode::Enter => app.start_input(),
+                    KeyCode::Enter => app.handle_enter(),
                     KeyCode::Char('x') if key.modifiers.contains(event::KeyModifiers::CONTROL) => {
                         return Ok(true);
                     }

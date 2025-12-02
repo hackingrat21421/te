@@ -132,4 +132,13 @@ impl App {
             }
         }
     }
+
+    pub fn handle_enter(&mut self) {
+        if let Some(selected) = self.list_state.selected() {
+            match &self.arguments[selected].value {
+                Value::String(_) => self.start_input(),
+                Value::Checked(_) => self.toggle_checkbox(),
+            }
+        }
+    }
 }
