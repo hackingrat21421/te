@@ -39,10 +39,13 @@ te-widget() {{
     if [ -n "$BUFFER" ]; then
         local result
         result=$({} $BUFFER)
-        if [ $? -eq 0 ] && [ -n "$result" ]; then
+        local ret=$?
+        zle reset-prompt
+        if [ $ret -eq 0 ] && [ -n "$result" ]; then
             BUFFER="$result"
             zle end-of-line
         fi
+        return $ret
     fi
 }}
 

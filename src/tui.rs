@@ -2,7 +2,7 @@ use anyhow::Result;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{
     Terminal, TerminalOptions, Viewport,
@@ -10,7 +10,7 @@ use ratatui::{
     style::{Color, Modifier, Style},
     widgets::Paragraph,
 };
-use std::io;
+use std::fs::OpenOptions;
 
 use crate::app::{App, Value};
 use crate::command_parser::parse_command;
@@ -24,13 +24,21 @@ pub fn run_tui(command_str: String) -> Result<Option<String>> {
     }
 
     enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
+
+    // Open /dev/tty directly for both reading and writing (like fzf does)
+    // This allows the TUI to work inside command substitution
+    let mut tty = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("/dev/tty")?;
+
+    execute!(tty, EnterAlternateScreen, EnableMouseCapture)?;
+
+    let backend = CrosstermBackend::new(tty);
     let mut terminal = Terminal::with_options(
         backend,
         TerminalOptions {
-            viewport: Viewport::Inline(14),
+            viewport: Viewport::Fullscreen,
         },
     )?;
 
@@ -38,7 +46,11 @@ pub fn run_tui(command_str: String) -> Result<Option<String>> {
     let result = run_app(&mut terminal, &mut app);
 
     disable_raw_mode()?;
-    execute!(terminal.backend_mut(), DisableMouseCapture)?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
     terminal.show_cursor()?;
 
     match result {
